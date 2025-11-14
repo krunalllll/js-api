@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Search App</title>
+
+    <style>
+        body{
+            margin:0;
+            padding:0;
+            font-family: Poppins, sans-serif;
+            background: linear-gradient(135deg, #7f7fd5, #86a8e7, #91eae4);
+            height:100vh;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .container{
+            background:#fff;
+            width:350px;
+            padding:25px;
+            border-radius:20px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.2);
+            text-align:center;
+        }
+
+        input{
+            width:90%;
+            padding:12px;
+            font-size:16px;
+            border-radius:12px;
+            border:1px solid #ccc;
+            outline:none;
+        }
+
+        button{
+            margin-top:15px;
+            width:100%;
+            padding:12px;
+            font-size:18px;
+            border:none;
+            border-radius:12px;
+            background:#007bff;
+            color:white;
+            cursor:pointer;
+        }
+
+        button:hover{
+            background:#005ec4;
+        }
+
+        .icon{
+            width:80px;
+            margin:15px 0;
+        }
+
+        .temp{
+            font-size:45px;
+            font-weight:bold;
+            color:#007bff;
+        }
+
+        .details{
+            font-size:18px;
+            color:#444;
+            margin-top:10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>🌤 Weather App</h2>
+
+        <input id="cityInput" type="text" placeholder="Enter city name">
+
+        <button onclick="getWeather()">Search</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function getWeather() {
+            let city = document.getElementById("cityInput").value.trim();
+            if(city === ""){
+                alert("Please enter a city name!");
+                return;
+            }
+
+            document.getElementById("result").innerHTML = "<h3>Loading...</h3>";
+
+            
+            fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${city}`)
+            .then(res => res.json())
+            .then(loc => {
+                if(!loc.results || loc.results.length === 0){
+                    document.getElementById("result").innerHTML = "<h3>City not found!</h3>";
+                    return;
+                }
+
+                let lat = loc.results[0].latitude;
+                let lon = loc.results[0].longitude;
+                let cityName = loc.results[0].name;
+
+            
+                return fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(!data.current_weather){
+                    document.getElementById("result").innerHTML = "<h3>Weather data not found!</h3>";
+                    return;
+                }
+
+                let w = data.current_weather;
+
+                document.getElementById("result").innerHTML = `
+                    <img src="https://cdn-icons-png.flaticon.com/512/1116/1116453.png" class="icon">
+
+                    <div class="temp">${w.temperature}°C</div>
+
+                    <div class="details">
+                        💨 Wind: ${w.windspeed} km/h <br><br>
+                        🕒 Time: ${w.time.replace("T"," ")}
+                    </div>
+                `;
+            })
+            .catch(err => {
+                document.getElementById("result").innerHTML = "<h3>Error loading data</h3>";
+                console.error(err);
+            });
+        }
+    </script>
+
+</body>
+</html>
