@@ -15,6 +15,7 @@
             justify-content:center;
             align-items:center;
             height:100vh;
+            flex-direction:column;
         }
         .card{
             background:white;
@@ -37,29 +38,57 @@
             margin-bottom:25px;
             color:#333;
         }
+
+        input, button{
+            padding:10px;
+            font-size:16px;
+            margin:5px;
+            border-radius:5px;
+            border:1px solid #ccc;
+        }
+        button{
+            cursor:pointer;
+            background:#005bea;
+            color:white;
+            border:none;
+        }
     </style>
 
 </head>
 <body>
 
+    <div>
+        <input type="text" id="country" placeholder="Enter country name (e.g. India)">
+        <button onclick="getCovidData()">Search</button>
+    </div>
+
     <div class="card" id="box">
-        <div class="title">Loading...</div>
+        <div class="title">Enter a country name</div>
     </div>
 
     <script>
-        fetch('https://api.rootnet.in/covid19-in/stats/latest')
-        .then(res => res.json())
-        .then(data => display(data));
+        function getCovidData(){
+            let country = document.getElementById("country").value.trim();
+
+            if(country === ""){
+                alert("Please enter a country name");
+                return;
+            }
+
+            fetch(`https://disease.sh/v3/covid-19/countries/${country}`)
+            .then(res => res.json())
+            .then(data => display(data))
+            .catch(err => {
+                document.getElementById("box").innerHTML = `<div class="title">Country not found</div>`;
+            });
+        }
 
         function display(data){
-            let box = document.getElementById("box");
-
-            box.innerHTML = `
-                <div class="title">COVID-19 India Stats</div>
-
-                <h1 class="case">Total Cases: ${data.data.summary.total}</h1>
-                <h1 class="death">Total Deaths: ${data.data.summary.deaths}</h1>
-                <h1 class="rec">Recovered: ${data.data.summary.discharged}</h1>
+            document.getElementById("box").innerHTML = `
+                <div class="title">COVID-19 Stats for ${data.country}</div>
+                <h1 class="case">Total Cases: ${data.cases}</h1>
+                <h1 class="death">Total Deaths: ${data.deaths}</h1>
+                <h1 class="rec">Recovered: ${data.recovered}</h1>
             `;
         }
     </script>
